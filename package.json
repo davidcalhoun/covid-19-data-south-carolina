@@ -1,0 +1,27 @@
+{
+  "name": "covid-19-data-south-carolina",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bump": "! npm outdated && npm update && npm audit fix || echo 'Package up to date'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidcalhoun/covid-19-data-south-carolina.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davidcalhoun/covid-19-data-south-carolina/issues"
+  },
+  "homepage": "https://github.com/davidcalhoun/covid-19-data-south-carolina#readme",
+  "dependencies": {
+    "deep-object-assign-with-reduce": "^2.1.4"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5"
+  }
+}
