@@ -1,8 +1,12 @@
 import { fileURLToPath } from 'url';
 import { dirname, normalize } from 'path';
 
+const [node, file, date] = process.argv;
+
 // TODO grab from command line
-const date = '2020-03-26';
+//const date = '2020-05-03';
+
+console.log(`Processing ${date}...`);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -132,7 +136,7 @@ async function newCasesToJSON(inputFilename, outputFilename) {
 			accum._curIndex = 0;
 		}
 
-		if (line === 'Reported Cases') {
+		if (line === 'Reported Cases' || line === 'Rep. Cases') {
 			accum._currentSection = 'counts';
 			accum._curIndex = 0;
 		}
@@ -171,5 +175,5 @@ async function newCasesToJSON(inputFilename, outputFilename) {
 	await writeFile(outputFilename, JSON.stringify(cleanedOutput, null, 2));
 }
 
-casesToJSON(normalize(`${__dirname}/../data/countyFormat/${date}.txt`), normalize(`${__dirname}/../data/countyFormat/${date}.json`));
+newCasesToJSON(normalize(`${__dirname}/../data/${date}.txt`), normalize(`${__dirname}/../data/${date}.json`));
 
