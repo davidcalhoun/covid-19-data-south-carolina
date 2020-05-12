@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "bump": "! npm outdated && npm update && npm audit fix || echo 'Package up to date'"
+    "bump": "! npm outdated && npm update && npm audit fix || echo 'Package up to date'",
+    "json": "node scripts/txtToJSON",
+    "merge": "node scripts/merge"
   },
   "repository": {
     "type": "git",

@@ -3,11 +3,6 @@ import { dirname, normalize } from 'path';
 
 const [node, file, date] = process.argv;
 
-// TODO grab from command line
-//const date = '2020-05-03';
-
-console.log(`Processing ${date}...`);
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -175,5 +170,12 @@ async function newCasesToJSON(inputFilename, outputFilename) {
 	await writeFile(outputFilename, JSON.stringify(cleanedOutput, null, 2));
 }
 
-newCasesToJSON(normalize(`${__dirname}/../data/${date}.txt`), normalize(`${__dirname}/../data/${date}.json`));
+if (!date) {
+	throw new Error('Must supply date to process.');
+} else {
+	console.log(`Processing ${date}...`);
+
+	newCasesToJSON(normalize(`${__dirname}/../data/${date}.txt`), normalize(`${__dirname}/../data/${date}.json`));
+}
+
 
