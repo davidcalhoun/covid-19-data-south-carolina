@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/davidcalhoun/covid-19-data-south-carolina#readme",
   "dependencies": {
+    "d3-array": "^2.4.0",
+    "d3-scale": "^3.2.1",
     "deep-object-assign-with-reduce": "^2.1.4"
   },
   "devDependencies": {

@@ -53,3 +53,5 @@ export function parseJSON(text) {
 }
 
 export const isJSON = (str) => !!str.match(".json$");
+
+export const lastValue = (arr) => arr[arr.length - 1];
