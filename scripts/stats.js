@@ -24,8 +24,8 @@ const getNewlyAffectedZips = (oldZipCases, newZipCases, zipMeta) => {
 };
 
 const getZipStats = (zipCases, zipMeta) => {
-  return Object.values(zipMeta).reduce(
-    (accum, { zip, population }) => {
+  const output = Object.values(zipMeta).reduce(
+    (accum, { zip, population, city, countyNames }) => {
       const cases = zipCases[zip];
 
       if (!cases || cases === "0") {
@@ -46,6 +46,17 @@ const getZipStats = (zipCases, zipMeta) => {
         affectedZips: [...accum.affectedZips, zip],
         affectedZipPopulation:
           accum.affectedZipPopulation + parseInt(population),
+        perCapita: [
+          ...accum.perCapita,
+          {
+            zip,
+            city,
+            countyNames,
+            population,
+            cases,
+            casesPerCapita: 10000 * (cases / population)
+          }
+        ]
       };
     },
     {
@@ -53,6 +64,22 @@ const getZipStats = (zipCases, zipMeta) => {
       affectedZipPopulation: 0,
       nonAffectedZips: [],
       nonAffectedZipPopulation: 0,
+      perCapita: []
     }
   );
+
+  return {
+    ...output,
+    topPerCapita: output.perCapita.sort(({casesPerCapita: casesPerCapitaA}, {casesPerCapita: casesPerCapitaB}) => casesPerCapitaB - casesPerCapitaA).slice(0, 15)
+  }
 };
+
+
+/**
+
+temp3.topPerCapita.reduce((accum, {zip, city, population, cases, casesPerCapita}) => {
+  accum += `# ${casesPerCapita.toFixed(2)} cases per 10k: ${city} (${zip}), ${cases} cases / ${population} residents\n`;
+  return accum;
+}, '')
+
+*/
