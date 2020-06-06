@@ -8,7 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "bump": "! npm outdated && npm update && npm audit fix || echo 'Package up to date'",
     "json": "node scripts/txtToJSON",
-    "merge": "node scripts/merge"
+    "merge": "node scripts/merge",
+    "cp": "cp data/casesMerged.json ../covid-19-map-south-carolina/src/data",
+    "publish": "cd ../davidcalhoun.github.io && npm run publish-covid"
   },
   "repository": {
     "type": "git",
