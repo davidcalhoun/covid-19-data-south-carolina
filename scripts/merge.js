@@ -191,16 +191,8 @@ async function merge() {
 				? caseCount / 1
 				: caseCount / lastWeekAverage;
 
-			if (zip === "29591") {
-				console.log(333434, avgChange, caseCount, lastWeekAverage, arr)
-			}
-
 			return avgChange;
 		});
-
-			if (zip === "29591") {
-				console.log(5555, averageChange)
-			}
 
 		accum[zip] = {
 			...zipObj,
