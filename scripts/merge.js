@@ -23,7 +23,7 @@ const filterZero = (val) => val > 0;
 
 const ascending = (a, b) => a - b;
 
-function getDomains(zipCodes, isPerCapita) {
+function getDomains(zipCodes) {
 	let all = Object.values(zipCodes)
 		.reduce((accum, { cases, population }) => {
 			return [...accum, ...cases];
@@ -46,9 +46,16 @@ function getDomains(zipCodes, isPerCapita) {
 		}, [])
 		.filter(filterZero);
 
+	let averageChange = Object.values(zipCodes)
+		.reduce((accum, { zip, averageChange }) => {
+			return [...accum, ...averageChange];
+		}, [])
+		.filter(filterZero);
+
 	return {
 		all: Float64Array.from(all).sort(ascending),
 		perCapita: Float64Array.from(perCapita).sort(ascending),
+		averageChange: Float64Array.from(averageChange).sort(ascending),
 	};
 }
 
@@ -65,15 +72,47 @@ const resizeArray = (arr, outputSize) => {
 	});
 }
 
+const average = (numArr) => {
+	if (numArr.length === 0) return 0;
+
+	const sum = numArr.reduce((total, val) => {
+		if (Number.isFinite(val)) {
+			return total + parseFloat(val);
+		} else {
+			return total;
+		}
+	}, 0.00);
+
+	return sum / numArr.length;
+}
+
 function getQuantiles(zipCodes) {
 	let domains = getDomains(zipCodes, false);
 
 	return {
 		all: resizeArray(domains.all, 100),
 		perCapita: resizeArray(domains.perCapita, 100),
+		averageChange: resizeArray(domains.averageChange, 100),
 		maxAll: lastValue(domains.all),
-		maxPerCapita: lastValue(domains.perCapita)
+		maxPerCapita: lastValue(domains.perCapita),
+		maxAverageChange: lastValue(domains.averageChange)
 	}
+}
+
+function slice(arr = [], startIndex = 0, len) {
+	const start = startIndex >= 0
+		? startIndex
+		: 0;
+
+	const end = start + len;
+
+	return arr.slice(start, end);
+}
+
+function getLastWeekAverage(cases, index) {
+	const lastWeekCases = slice(cases, index - 7, 7);
+
+	return average(lastWeekCases);
 }
 
 async function merge() {
@@ -141,9 +180,22 @@ async function merge() {
 			return cases;
 		}, []);
 
+		const averageChange = allCasesForZip.map((caseCount, index, arr) => {
+			if (index === 0) return 1;
+
+			const lastWeekAverage = getLastWeekAverage(arr, index);
+
+			const avgChange = (lastWeekAverage < 1)
+				? caseCount / 1
+				: caseCount / lastWeekAverage;
+
+			return avgChange;
+		});
+
 		accum[zip] = {
 			...zipObj,
 			cases: allCasesForZip,
+			averageChange
 		};
 
 		return accum;
@@ -156,6 +208,8 @@ async function merge() {
 		}),
 		quantiles: getQuantiles(output),
 	};
+
+	console.log(2222, output.meta.quantiles)
 
 	await writeFile(
 		`${__dirname}/../data/${outputFilename}`,
