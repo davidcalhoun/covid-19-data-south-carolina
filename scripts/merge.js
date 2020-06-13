@@ -174,16 +174,18 @@ async function merge() {
 	const output = Object.values(zipMetaJSON).reduce((accum, zipObj) => {
 		const { zip } = zipObj;
 
-		const allCasesForZip = filesJSON.reduce((cases, fileObj) => {
+		const cases = filesJSON.reduce((cases, fileObj) => {
 			const casesForDate = fileObj[zip] || null;
 			cases.push(parseInt(casesForDate));
 			return cases;
 		}, []);
 
-		const averageChange = allCasesForZip.map((caseCount, index, arr) => {
-			if (index === 0) return 1;
+		const averageChange = cases.map((caseCount, index, arr) => {
+			if (index === 0 || !Number.isFinite(caseCount)) return 1;
 
 			const lastWeekAverage = getLastWeekAverage(arr, index);
+
+			if (caseCount === lastWeekAverage) return 1;
 
 			const avgChange = (lastWeekAverage < 1)
 				? caseCount / 1
@@ -194,7 +196,7 @@ async function merge() {
 
 		accum[zip] = {
 			...zipObj,
-			cases: allCasesForZip,
+			cases,
 			averageChange
 		};
 
