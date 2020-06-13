@@ -209,8 +209,6 @@ async function merge() {
 		quantiles: getQuantiles(output),
 	};
 
-	console.log(2222, output.meta.quantiles)
-
 	await writeFile(
 		`${__dirname}/../data/${outputFilename}`,
 		JSON.stringify(output)
