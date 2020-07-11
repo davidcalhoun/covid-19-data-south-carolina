@@ -11,6 +11,7 @@
     "merge": "node scripts/merge",
     "cp": "cp data/casesMerged.json ../covid-19-map-south-carolina/src/data",
     "publish": "cd ../davidcalhoun.github.io && npm run publish-covid",
+    "daily-download": "node ./scripts/daily-download.js",
     "daily-update": "./scripts/daily-update.sh"
   },
   "repository": {
@@ -26,7 +27,10 @@
   "dependencies": {
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
-    "deep-object-assign-with-reduce": "^2.1.4"
+    "date-fns": "^2.14.0",
+    "deep-object-assign-with-reduce": "^2.1.4",
+    "pdf2json": "^1.2.0",
+    "puppeteer": "^4.0.1"
   },
   "devDependencies": {
     "prettier": "^2.0.5"
