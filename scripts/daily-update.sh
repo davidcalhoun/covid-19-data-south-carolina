@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 date=$1
 
 npm run json $date
