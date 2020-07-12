@@ -6,9 +6,16 @@ Currently this process is semi-automated:
 
 1. PDF exported from DHEC website.
 1. PDF converted to text via [pdftotext.com](pdftotext.com)
-1. Text cleaned up
+1. Text cleaned up manually, then the `daily-update.sh` script is run (e.g. `npm run daily-update 2020-07-11`)
 
 This process isn't ideal, but it's functional.  I was kind of hoping the pandemic would have settled down by now, so I didn't invest much in automation.
+
+## Installation
+This runs with [Node.js](https://nodejs.org) and dependencies are managed by [NPM](https://www.npmjs.com/), which comes with Node.
+
+1. Clone this repo and move into the newly-created directory: `git clone git@github.com:davidcalhoun/covid-19-data-south-carolina.git && cd covid-19-data-south-carolina`
+1. Install dependencies by running `npm i`.  This will create a `node_modules` directory, containing all package dependencies.
+1. Take a look at the scripts section of `package.json`, which are available scripts you can run.  For instance, to version bump dependencies automatically, you can run `npm run bump`.
 
 ## `data`
 All data exports live here.  The original `PDF` is preserved alongside its `TXT` and `JSON` translations.
@@ -31,3 +38,4 @@ There are several helper scripts to retrieve and process data.  Some scripts are
 
 ## TODO
 * Minor: JSON should have unquoted numbers (`{12345: 67}` instead of `{"12345": "67"}`)
+* Remove need to clean up TXT OCR manually.
