@@ -32,7 +32,7 @@ There are several helper scripts to retrieve and process data.  Some scripts are
 1. `daily-update.sh` - updates and pushes the `casesMerged.json` file to Github, which automatically redeploys the [map visualization](https://davidcalhoun.github.io/covid-19-map-south-carolina/)
 1. `merge.js` - merges all JSON data files and outputs `data/casesMerged.json`
 1. `pdfToJSON.js` - (experimental WIP) - initial attempts to run OCR on PDFs, to avoid needing to use [pdftotext.com](pdftotext.com)
-1. `stats.js` - helper script to determine which zip codes are newly affected.  Not used much now, as most all zip codes are affected.
+1. `stats.js` - (legacy) helper script to determine which zip codes are newly affected.  Not used much now, as most all zip codes are affected.
 1. `txtToJSON.js` - converts TXT data to JSON format.
 1. `utils.js` - shared utilities (for file reading, data manipulation, etc)
 

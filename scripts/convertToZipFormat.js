@@ -1,3 +1,8 @@
+/**
+ * Legacy script to convert County Format text to Zip format.
+ * (for PDFs exports from DHEC prior to April 10)
+ */
+
 import { promises as fs } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, normalize, basename } from "path";

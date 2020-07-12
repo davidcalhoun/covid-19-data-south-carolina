@@ -1,3 +1,7 @@
+/**
+ * Shared helper utilities.
+ */
+
 import { promises as fs } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, normalize, basename } from "path";
@@ -8,6 +12,10 @@ const __dirname = dirname(__filename);
 
 const { readFile, writeFile, readdir } = fs;
 
+/**
+ * Reads all files in a directory, ignoring files that don't pass
+ * through the required filterFn.
+ */
 export async function readAllFiles(dir, filterFn) {
 	const files = await readdir(normalize(dir));
 
@@ -39,7 +47,9 @@ export async function readAllFiles(dir, filterFn) {
 	return await Promise.all(promises);
 }
 
-
+/**
+ * Parses text input to JSON.
+ */
 export function parseJSON(text) {
 	let json = null;
 
@@ -52,6 +62,8 @@ export function parseJSON(text) {
 	return json;
 }
 
+/* Determines if a file is of type JSON. */
 export const isJSON = (str) => !!str.match(".json$");
 
+/* Returns the last value in an array. */
 export const lastValue = (arr) => arr[arr.length - 1];

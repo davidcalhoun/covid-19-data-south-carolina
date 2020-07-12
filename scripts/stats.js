@@ -1,3 +1,8 @@
+/**
+ * Legacy helper scripts to determine which zip codes are newly-affected
+ * (e.g. had 0 cases in oldZipCases and nonzero cases in newZipCases).
+ */
+
 const getNewlyAffectedZips = (oldZipCases, newZipCases, zipMeta) => {
   const newZips = Object.entries(newZipCases).reduce((zips, [zip, cases]) => {
     if (
@@ -74,12 +79,3 @@ const getZipStats = (zipCases, zipMeta) => {
   }
 };
 
-
-/**
-
-temp3.topPerCapita.reduce((accum, {zip, city, population, cases, casesPerCapita}) => {
-  accum += `# ${casesPerCapita.toFixed(2)} cases per 10k: ${city} (${zip}), ${cases} cases / ${population} residents\n`;
-  return accum;
-}, '')
-
-*/

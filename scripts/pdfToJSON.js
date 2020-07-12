@@ -1,3 +1,7 @@
+/**
+ * WIP experimental PDF to JSON OCR.
+ */
+
 import { promises as fs } from "fs";
 import PDFParser from "pdf2json";
 

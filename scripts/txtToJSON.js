@@ -1,3 +1,7 @@
+/**
+ * Converts a zip TXT to JSON format.
+ */
+
 import { fileURLToPath } from 'url';
 import { dirname, normalize } from 'path';
 
@@ -10,6 +14,7 @@ import { promises as fs } from "fs";
 
 const { readFile, writeFile } = fs;
 
+// TODO: use shared utils fn instead.
 function parseJSON(text) {
 	let json = null;
 
@@ -54,6 +59,11 @@ function removePrivateProps(objRaw) {
 	return obj;
 }
 
+/**
+ * Converts an input zip file 2020-01-01.txt to 2020-01-01.json.
+ * Iterates through each line in the text file, keeping track of which section
+ * it's currently in.
+ */
 async function casesToJSON(inputFilename, outputFilename) {
 	let cases;
 	try {
@@ -65,78 +75,22 @@ async function casesToJSON(inputFilename, outputFilename) {
 
 	// Iterates through each line in the file sequentially.
 	const output = cases.split('\n').reduce((accum, line) => {
-		// Checks if a new county threshold was crossed.
-		const county = getCountyName(line);
-		if (county) {
-			accum._currentCounty = county;
-			accum._currentSection = 'zip';
-			accum[county] = [];
-			return accum;
-		}
-
-		// Checks if the end of the Zip code list was reached for this county.  If so,
-		// we know we're now in the confirmed case counts section.
-		if (line === 'Total') {
-			accum._currentSection = 'counts';
-			accum._countIndex = 0;
-		}
-
-		// Checks if the current line appears to be a zip code.
-		if (isZipCode(line) && accum._currentSection === 'zip') {
-			const newZip = {
-				zip: line
-			};
-			accum[accum._currentCounty].push(newZip);
-			return accum;
-		}
-
-		// Checks if the current line appears to be a confirmed case count.
-		// Note: this assumes that the confirmed case count list will always appear first.  Subsequent
-		// lists of numbers (e.g. estimated cases, possible cases) will be ignored
-		
-		if (isCaseCount(line) && accum._currentSection === 'counts') {
-			const zipInitializedForCounty = typeof accum[accum._currentCounty][accum._countIndex] !== 'undefined';
-
-			if (zipInitializedForCounty) {
-				accum[accum._currentCounty][accum._countIndex].positive = line;
-				accum._countIndex = accum._countIndex + 1;
-			}
-		}
-
-		return accum;
-	}, {});
-
-	const cleanedOutput = removePrivateProps(output);
-
-
-
-	await writeFile(outputFilename, JSON.stringify(cleanedOutput, null, 2));
-}
-
-
-async function newCasesToJSON(inputFilename, outputFilename) {
-	let cases;
-	try {
-		cases = await readFile(inputFilename, "utf8");
-	} catch(e) {
-		console.error(`Could not find file ${inputFilename}`);
-		return;
-	}
-
-	// Iterates through each line in the file sequentially.
-	const output = cases.split('\n').reduce((accum, line) => {
+		// Determines if we're currently in the "Zip code" section.
 		if (line === 'Zip') {
 			accum._currentSection = 'zip';
 			accum._indeces = [];
 			accum._curIndex = 0;
 		}
 
+		// Determines if we're currently in the "Reported Cases" section.
+		// Note: we don't care about the estimated or total cases sections,
+		// which are statistical guesses.
 		if (line === 'Reported Cases' || line === 'Rep. Cases') {
 			accum._currentSection = 'counts';
 			accum._curIndex = 0;
 		}
 
-		// Checks if the current line appears to be a zip code.
+		// Checks if the current text line is likely a zip code.
 		if (isZipCode(line) && accum._currentSection === 'zip') {
 			accum._indeces[accum._curIndex] = line;
 			accum._curIndex++;
@@ -144,10 +98,12 @@ async function newCasesToJSON(inputFilename, outputFilename) {
 			return accum;
 		}
 
-		// Checks if the current line appears to be a confirmed case count.
-		// Note: this assumes that the confirmed case count list will always appear first.  Subsequent
-		// lists of numbers (e.g. estimated cases, possible cases) will be ignored
-		
+		/**
+		 * Checks if the current line appears to be a confirmed case count.
+		 * Note: this assumes that the confirmed case count list will always
+		 * appear first.  Subsequent lists of numbers (e.g. estimated cases,
+		 * possible cases) will be ignored.
+		 */
 		if (isCaseCount(line) && accum._currentSection === 'counts') {
 			const zipCode = accum._indeces[accum._curIndex];
 
@@ -163,9 +119,8 @@ async function newCasesToJSON(inputFilename, outputFilename) {
 		return accum;
 	}, {});
 
+	// Removes any temporary props we used while iterating through each line.
 	const cleanedOutput = removePrivateProps(output);
-
-
 
 	await writeFile(outputFilename, JSON.stringify(cleanedOutput, null, 2));
 }
@@ -175,7 +130,7 @@ if (!date) {
 } else {
 	console.log(`Processing ${date}...`);
 
-	newCasesToJSON(normalize(`${__dirname}/../data/${date}.txt`), normalize(`${__dirname}/../data/${date}.json`));
+	casesToJSON(normalize(`${__dirname}/../data/${date}.txt`), normalize(`${__dirname}/../data/${date}.json`));
 }
 
 
