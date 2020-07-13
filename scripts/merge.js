@@ -98,13 +98,13 @@ var resizeArray = (arr, outputSize) => {
   
   return probePoints.map(val => {
     const out = scale(val, outputSize + 1, arr.length);
-    const outFloor = Math.floor(out);
     const inLeftSide = (out / arr.length) <= 0.5;
+
     if (Number.isInteger(out)) {
       return inLeftSide ? arr[out - 1] : arr[out];
     }
     
-    return arr[outFloor];
+    return arr[Math.floor(out)];
   });
 }
 
