@@ -32,7 +32,7 @@ function isZipCode(str) {
 }
 
 function isCaseCount(str) {
-	return !!str.match(/^[0-9]+$/);
+	return !!str.match(/^[0-9\,]+$/);
 }
 
 function getCountyName(str) {
@@ -111,7 +111,7 @@ async function casesToJSON(inputFilename, outputFilename) {
 				return accum;
 			}
 
-			accum[zipCode] = line;
+			accum[zipCode] = parseInt(line.replace(',', ''));
 			accum._curIndex++;
 			return accum;
 		}
