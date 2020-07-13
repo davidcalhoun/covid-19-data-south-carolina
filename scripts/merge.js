@@ -79,23 +79,34 @@ export const fillSequentialArray = (len) => {
 	return Array.from(new Array(len)).map((val, index) => index + 1);
 };
 
+const scale = (input, inputMax, outputMax) => {
+  return (input * outputMax) / inputMax;
+}
+
 /**
  * Minifies a sorted array.
  * Examples:
- * resizeArray([2, 4, 6, 8, 10], 2);
- * -> [4, 8]
- * resizeArray([2, 4, 6, 8, 10], 3);
- * -> [2, 6, 10]
- * TODO: this is somewhat broken.
+ * resizeArray([2,4,6,8,10], 2);
+ * -> [4,8]
+ * resizeArray([1,2,3,4,5,6,7], 1);
+ * -> [5]
+ * resizeArray([1,2,3,4,5,6,7], 3);
+ * -> [2,4,6]
  */
-const resizeArray = (arr, outputSize) => {
-	const step = Math.floor(arr.length / outputSize);
-	const output = fillSequentialArray(outputSize);
-
-	return output.map((val) => {
-		return arr[val * step];
-	});
-};
+var resizeArray = (arr, outputSize) => {
+  const probePoints = fillSequentialArray(outputSize);
+  
+  return probePoints.map(val => {
+    const out = scale(val, outputSize + 1, arr.length);
+    const outFloor = Math.floor(out);
+    const inLeftSide = (out / arr.length) <= 0.5;
+    if (Number.isInteger(out)) {
+      return inLeftSide ? arr[out - 1] : arr[out];
+    }
+    
+    return arr[outFloor];
+  });
+}
 
 /**
  * Determines the average in an array of numbers.
