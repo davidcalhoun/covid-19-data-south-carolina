@@ -5,6 +5,8 @@
 import { fileURLToPath } from 'url';
 import { dirname, normalize } from 'path';
 
+import { parseJSON } from "./utils.js";
+
 const [node, file, date] = process.argv;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,19 +15,6 @@ const __dirname = dirname(__filename);
 import { promises as fs } from "fs";
 
 const { readFile, writeFile } = fs;
-
-// TODO: use shared utils fn instead.
-function parseJSON(text) {
-	let json = null;
-
-	try {
-		json = JSON.parse(text);
-	} catch (e) {
-		throw new Error("Error parsing JSON.");
-	}
-
-	return json;
-}
 
 function isZipCode(str) {
 	return !!str.match(/^[0-9]{5}$/);

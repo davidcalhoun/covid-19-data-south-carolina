@@ -13,7 +13,19 @@ import d3Scale from "d3-scale";
 const { range, descending } = d3Array;
 const { scaleQuantile } = d3Scale;
 
-import { readAllFiles, parseJSON, isJSON, lastValue } from "./utils.js";
+import {
+	readAllFiles,
+	parseJSON,
+	isJSON,
+	lastValue,
+	filterZero,
+	ascending,
+	fillSequentialArray,
+	scale,
+	resizeArray,
+	average,
+	slice,
+} from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -22,16 +34,6 @@ const { readFile, writeFile, readdir } = fs;
 
 const outputFilename = "casesMerged.json";
 const zipMetaFilename = "scZipMeta.json";
-
-/**
- * Removes values that are 0.  For Array filter.
- */
-const filterZero = (val) => val > 0;
-
-/**
- * Sorts values in ascending order.  For Array sort.
- */
-const ascending = (a, b) => a - b;
 
 function getDomains(zipCodes) {
 	let all = Object.values(zipCodes)
@@ -73,59 +75,6 @@ function getDomains(zipCodes) {
 }
 
 /**
- * Creates a new array of sequential values of length len, starting from 1.
- */
-export const fillSequentialArray = (len) => {
-	return Array.from(new Array(len)).map((val, index) => index + 1);
-};
-
-const scale = (input, inputMax, outputMax) => {
-  return (input * outputMax) / inputMax;
-}
-
-/**
- * Minifies a sorted array.
- * Examples:
- * resizeArray([2,4,6,8,10], 2);
- * -> [4,8]
- * resizeArray([1,2,3,4,5,6,7], 1);
- * -> [5]
- * resizeArray([1,2,3,4,5,6,7], 3);
- * -> [2,4,6]
- */
-var resizeArray = (arr, outputSize) => {
-  const probePoints = fillSequentialArray(outputSize);
-  
-  return probePoints.map(val => {
-    const out = scale(val, outputSize + 1, arr.length);
-    const inLeftSide = (out / arr.length) <= 0.5;
-
-    if (Number.isInteger(out)) {
-      return inLeftSide ? arr[out - 1] : arr[out];
-    }
-    
-    return arr[Math.floor(out)];
-  });
-}
-
-/**
- * Determines the average in an array of numbers.
- */
-const average = (numArr) => {
-	if (numArr.length === 0) return 0;
-
-	const sum = numArr.reduce((total, val) => {
-		if (Number.isFinite(val)) {
-			return total + parseFloat(val);
-		} else {
-			return total;
-		}
-	}, 0.0);
-
-	return sum / numArr.length;
-};
-
-/**
  * Computes data quantiles for use in the map visualization legend.  Precomputing
  * it here results in a clientside performance boost on initial load.
  */
@@ -148,14 +97,6 @@ function getQuantiles(zipCodes) {
 		maxPerCapita: lastValue(domains.perCapita),
 		maxAverageChange: lastValue(domains.averageChange),
 	};
-}
-
-function slice(arr = [], startIndex = 0, len) {
-	const start = startIndex >= 0 ? startIndex : 0;
-
-	const end = start + len;
-
-	return arr.slice(start, end);
 }
 
 function getLastWeekAverage(cases, index) {
