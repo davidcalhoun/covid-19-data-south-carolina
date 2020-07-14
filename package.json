@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "bump": "! npm outdated && npm update && npm audit fix || echo 'Package up to date'",
     "json": "node scripts/txtToJSON",
     "merge": "node scripts/merge",
@@ -28,11 +28,16 @@
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
     "date-fns": "^2.14.0",
-    "deep-object-assign-with-reduce": "^2.1.4",
+    "deep-object-assign-with-reduce": "^2.1.5",
     "pdf2json": "^1.2.0",
     "puppeteer": "^4.0.1"
   },
   "devDependencies": {
+    "jest": "^26.1.0",
     "prettier": "^2.0.5"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "jest-environment-node"
   }
 }
