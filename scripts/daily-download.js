@@ -1,3 +1,7 @@
+/**
+ * (legacy) Downloads zip code PDFs from the SC DHEC dashboard using an actual browser.
+ */
+
 import puppeteer from'puppeteer';
 import datefns from 'date-fns'
 const { format } = datefns;
