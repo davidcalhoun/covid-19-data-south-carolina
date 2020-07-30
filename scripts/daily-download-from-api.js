@@ -17,6 +17,11 @@ import {
 	slice,
 } from "./utils.js";
 
+const EXIT_CODES = {
+	NOMIMAL: 0,
+	ERROR: 1
+}
+
 const { format } = datefns;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,7 +51,10 @@ function getLastWeekAverage(cases, index) {
 }
 
 function areSameDay(dateA, dateB) {
-	return format(new Date(dateA), 'yyyy-MM-dd') === format(new Date(dateB), 'yyyy-MM-dd');
+	const a = format(new Date(dateA), 'yyyy-MM-dd');
+	const b = format(new Date(dateB), 'yyyy-MM-dd');
+
+	return a === b;
 }
 
 function getDomains(zipCodes) {
@@ -122,6 +130,12 @@ async function init() {
 	);
 	const zipMetaJSON = parseJSON(zipMeta);
 
+	const curData = await readFile(
+		normalize(`${__dirname}/../data/${outputFilename}`),
+		"utf8"
+	);
+	const curDataJSON = parseJSON(curData);
+
 	const cases = data.features.map(({attributes}) => {
 		const { Zip: zip, Total_Cases: total, Date: date } = attributes;
 
@@ -134,6 +148,16 @@ async function init() {
 	});
 
 	const casesSorted = cases.sort(dateAscending);
+
+	const newestDate = lastValue(casesSorted).date;
+
+	const noUpdatesAvailable = areSameDay(newestDate, `${curDataJSON.meta.dateBounds.last} 20:00:00`);
+	if (noUpdatesAvailable) {
+		console.log(`No data update available. (most recent data is from ${format(new Date(newestDate), 'yyyy-MM-dd')})`);
+		process.exit(EXIT_CODES.ERROR);
+	} else {
+		console.log(`New data found for ${format(new Date(newestDate), 'yyyy-MM-dd')}.  (newest processed data is from ${format(new Date(`${curDataJSON.meta.dateBounds.last} 20:00:00`), 'yyyy-MM-dd')})`);
+	}
 
 	const output = Object.values(zipMetaJSON).reduce((accum, zipObj) => {
 		// Assembles info for this zip code.
@@ -204,7 +228,16 @@ async function init() {
 		JSON.stringify(output)
 	);
 
-	process.exit(1);
+	process.exit(EXIT_CODES.NOMIMAL);
 }
 
-init();
+
+// await not available at top level, so we need to wrap this in an IIFE.
+(async function() {
+	try {
+		await init();
+	} catch(e) {
+		console.error(e);
+		process.exit(EXIT_CODES.ERROR);
+	}
+})();
