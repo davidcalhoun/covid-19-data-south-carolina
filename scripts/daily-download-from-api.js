@@ -154,7 +154,7 @@ async function init() {
 	const noUpdatesAvailable = areSameDay(newestDate, `${curDataJSON.meta.dateBounds.last} 20:00:00`);
 	if (noUpdatesAvailable) {
 		console.log(`No data update available. (most recent data is from ${format(new Date(newestDate), 'yyyy-MM-dd')})`);
-		process.exit(EXIT_CODES.ERROR);
+		//process.exit(EXIT_CODES.ERROR);
 	} else {
 		console.log(`New data found for ${format(new Date(newestDate), 'yyyy-MM-dd')}.  (newest processed data is from ${format(new Date(`${curDataJSON.meta.dateBounds.last} 20:00:00`), 'yyyy-MM-dd')})`);
 	}
@@ -176,7 +176,10 @@ async function init() {
 			if (hasCasesForDate) {
 				cases.push(hasCasesForDate.total);
 			} else {
-				cases.push(0);
+				// Note: some gaps exist in the data.  If this date doesn't exist in the data,
+				// just use the previous total.
+				const lastVal = lastValue(cases) || 0;
+				cases.push(lastVal);
 			}
 
 			curDateMS += msInADay;
@@ -195,12 +198,12 @@ async function init() {
 
 			if (caseCount === lastWeekAverage) return 1;
 
-			const avgChange =
-				lastWeekAverage < 2
-					? caseCount / 1
-					: caseCount / lastWeekAverage;
+			if (lastWeekAverage < 1) {
+				// Tweak to avoid division by zero.
+				return (caseCount + 1) / 1;
+			}
 
-			return avgChange;
+			return caseCount / lastWeekAverage;
 		});
 
 		accum[zip] = {
