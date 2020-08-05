@@ -166,7 +166,9 @@ async function init() {
 		const zip = parseInt(rawZip);
 
 		// All confirmed cases, for all dates.
-		const casesForZip = casesSorted.filter(({zip: zipToFind}) => zip === zipToFind);
+		const casesForZip = casesSorted.filter(({zip: zipToFind}) => {
+			return parseInt(zip) === parseInt(zipToFind);
+		});
 
 		let curDateMS = firstDayMS;
 		let cases = [];
