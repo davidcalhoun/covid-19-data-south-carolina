@@ -31,7 +31,7 @@ const { readFile, writeFile, readdir } = fs;
 const zipMetaFilename = "scZipMeta.json";
 const outputFilename = "casesMerged.json";
 const scdhecCovidDataUrl = 'https://services2.arcgis.com/XZg2efAbaieYAXmu/arcgis/rest/services/COVID19__Zip_Code__TIME_Series_View/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=json';
-const firstDayMS = 1583366400000;
+const firstDayMS = 1583280000000;
 const msInADay = 1000 * 60 * 60 * 24;
 
 async function getData() {
