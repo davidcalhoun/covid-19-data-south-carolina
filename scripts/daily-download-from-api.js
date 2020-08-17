@@ -3,6 +3,7 @@ import datefns from 'date-fns';
 import { promises as fs } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, normalize, basename } from "path";
+import { URL } from 'url';
 import {
 	readAllFiles,
 	parseJSON,
@@ -30,14 +31,47 @@ const { readFile, writeFile, readdir } = fs;
 
 const zipMetaFilename = "scZipMeta.json";
 const outputFilename = "casesMerged.json";
-const scdhecCovidDataUrl = 'https://services2.arcgis.com/XZg2efAbaieYAXmu/arcgis/rest/services/COVID19__Zip_Code__TIME_Series_View/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=json';
+const baseAPIURL = 'https://services2.arcgis.com/XZg2efAbaieYAXmu/arcgis/rest/services/COVID19__Zip_Code__TIME_Series_View/FeatureServer/0/query';
 const firstDayMS = 1583280000000;
 const msInADay = 1000 * 60 * 60 * 24;
 
+function getURL(base, searchParams) {
+	let u = new URL(base);
+
+	Object.entries(searchParams).forEach(([key, val]) => {
+		u.searchParams.set(key, val);
+	});
+
+	return u.toString();
+}
+
+async function fetchAll(...urls) {
+	return Promise.all(urls.map(async (curUrl) => {
+		return await fetch(curUrl);
+	}));
+}
+
 async function getData() {
-  var response = await fetch(scdhecCovidDataUrl);
-  var data = await response.json();
-  return data;
+	const baseParams = {
+		where: "1=1",
+		outFields: "*",
+		outSR: 4326,
+		f: "json"
+	};
+
+	// TODO better handling of page iteration.
+	const page1 = getURL(baseAPIURL, {...baseParams, where: 'FID >= 1 AND FID <= 50000'});
+	const page2 = getURL(baseAPIURL, {...baseParams, where: 'FID >= 50001 AND FID <= 100000'});
+
+	const pages = await fetchAll(page1, page2);
+
+	const page1Data = await pages[0].json();
+	const page2Data = await pages[1].json();
+
+  	return [
+  		...page1Data.features,
+  		...page2Data.features
+  	];
 }
 
 function dateAscending({date: dateA}, {date: dateB}) {
@@ -122,7 +156,7 @@ function getQuantiles(zipCodes) {
 }
 
 async function init() {
-	const data = await getData();
+	const features = await getData();
 
 	const zipMeta = await readFile(
 		normalize(`${__dirname}/../data/${zipMetaFilename}`),
@@ -136,7 +170,7 @@ async function init() {
 	);
 	const curDataJSON = parseJSON(curData);
 
-	const cases = data.features.map(({attributes}) => {
+	const cases = features.map(({attributes}) => {
 		const { Zip: zip, Total_Cases: total, Date: date } = attributes;
 
 		return {
