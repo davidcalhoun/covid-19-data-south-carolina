@@ -46,9 +46,7 @@ function getURL(base, searchParams) {
 }
 
 async function fetchAll(...urls) {
-	return Promise.all(urls.map(async (curUrl) => {
-		return await fetch(curUrl);
-	}));
+	return Promise.all(urls.map(async (curUrl) => await fetch(curUrl)));
 }
 
 async function getData() {
