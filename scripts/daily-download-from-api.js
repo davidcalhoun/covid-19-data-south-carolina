@@ -1,9 +1,9 @@
-import fetch from 'node-fetch';
-import datefns from 'date-fns';
+import fetch from "node-fetch";
+import datefns from "date-fns";
 import { promises as fs } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, normalize, basename } from "path";
-import { URL } from 'url';
+import { URL } from "url";
 import {
 	readAllFiles,
 	parseJSON,
@@ -20,8 +20,8 @@ import {
 
 const EXIT_CODES = {
 	NOMIMAL: 0,
-	ERROR: 1
-}
+	ERROR: 1,
+};
 
 const { format } = datefns;
 const __filename = fileURLToPath(import.meta.url);
@@ -31,7 +31,8 @@ const { readFile, writeFile, readdir } = fs;
 
 const zipMetaFilename = "scZipMeta.json";
 const outputFilename = "casesMerged.json";
-const baseAPIURL = 'https://services2.arcgis.com/XZg2efAbaieYAXmu/arcgis/rest/services/COVID19__Zip_Code__TIME_Series_View/FeatureServer/0/query';
+const baseAPIURL =
+	"https://services2.arcgis.com/XZg2efAbaieYAXmu/arcgis/rest/services/COVID19__Zip_Code__TIME_Series_View/FeatureServer/0/query";
 const firstDayMS = 1583280000000;
 const msInADay = 1000 * 60 * 60 * 24;
 
@@ -46,6 +47,8 @@ function getURL(base, searchParams) {
 }
 
 async function fetchAll(...urls) {
+	console.log(`Fetching ${urls.length} urls`, urls);
+
 	return Promise.all(urls.map(async (curUrl) => await fetch(curUrl)));
 }
 
@@ -54,25 +57,38 @@ async function getData() {
 		where: "1=1",
 		outFields: "*",
 		outSR: 4326,
-		f: "json"
+		f: "json",
 	};
 
 	// TODO better handling of page iteration.
-	const page1 = getURL(baseAPIURL, {...baseParams, where: 'FID >= 1 AND FID <= 50000'});
-	const page2 = getURL(baseAPIURL, {...baseParams, where: 'FID >= 50001 AND FID <= 100000'});
+	const page1 = getURL(baseAPIURL, {
+		...baseParams,
+		where: "FID >= 1 AND FID <= 50000",
+	});
+	const page2 = getURL(baseAPIURL, {
+		...baseParams,
+		where: "FID >= 50001 AND FID <= 100000",
+	});
 
 	const pages = await fetchAll(page1, page2);
 
 	const page1Data = await pages[0].json();
 	const page2Data = await pages[1].json();
 
-  	return [
-  		...page1Data.features,
-  		...page2Data.features
-  	];
+	console.log(
+		`Received 2 pages of data: ${page1Data.features.length} results and ${page2Data.features.length} results.`
+	);
+
+	if (page2Data.exceededTransferLimit) {
+		console.warn(
+			"Warning!  Second page of data exceeded limit.  You need to add an additional data page request."
+		);
+	}
+
+	return [...page1Data.features, ...page2Data.features];
 }
 
-function dateAscending({date: dateA}, {date: dateB}) {
+function dateAscending({ date: dateA }, { date: dateB }) {
 	return dateA - dateB;
 }
 
@@ -83,8 +99,8 @@ function getLastWeekAverage(cases, index) {
 }
 
 function areSameDay(dateA, dateB) {
-	const a = format(new Date(dateA), 'yyyy-MM-dd');
-	const b = format(new Date(dateB), 'yyyy-MM-dd');
+	const a = format(new Date(dateA), "yyyy-MM-dd");
+	const b = format(new Date(dateB), "yyyy-MM-dd");
 
 	return a === b;
 }
@@ -168,27 +184,43 @@ async function init() {
 	);
 	const curDataJSON = parseJSON(curData);
 
-	const cases = features.map(({attributes}) => {
+	const cases = features.map(({ attributes }) => {
 		const { Zip: zip, Total_Cases: total, Date: date } = attributes;
 
 		return {
 			zip,
 			total,
 			date,
-			dateFormatted: format(new Date(date), 'yyyy-MM-dd')
-		}
+			dateFormatted: format(new Date(date), "yyyy-MM-dd"),
+		};
 	});
 
 	const casesSorted = cases.sort(dateAscending);
 
 	const newestDate = lastValue(casesSorted).date;
 
-	const noUpdatesAvailable = areSameDay(newestDate, `${curDataJSON.meta.dateBounds.last} 20:00:00`);
+	const noUpdatesAvailable = areSameDay(
+		newestDate,
+		`${curDataJSON.meta.dateBounds.last} 20:00:00`
+	);
 	if (noUpdatesAvailable) {
-		console.log(`No data update available. (most recent data is from ${format(new Date(newestDate), 'yyyy-MM-dd')})`);
-		//process.exit(EXIT_CODES.ERROR);
+		console.log(
+			`No data update available. (most recent data is from ${format(
+				new Date(newestDate),
+				"yyyy-MM-dd"
+			)})`
+		);
+		process.exit(EXIT_CODES.ERROR);
 	} else {
-		console.log(`New data found for ${format(new Date(newestDate), 'yyyy-MM-dd')}.  (newest processed data is from ${format(new Date(`${curDataJSON.meta.dateBounds.last} 20:00:00`), 'yyyy-MM-dd')})`);
+		console.log(
+			`New data found for ${format(
+				new Date(newestDate),
+				"yyyy-MM-dd"
+			)}.  (newest processed data is from ${format(
+				new Date(`${curDataJSON.meta.dateBounds.last} 20:00:00`),
+				"yyyy-MM-dd"
+			)})`
+		);
 	}
 
 	const output = Object.values(zipMetaJSON).reduce((accum, zipObj) => {
@@ -198,14 +230,16 @@ async function init() {
 		const zip = parseInt(rawZip);
 
 		// All confirmed cases, for all dates.
-		const casesForZip = casesSorted.filter(({zip: zipToFind}) => {
+		const casesForZip = casesSorted.filter(({ zip: zipToFind }) => {
 			return parseInt(zip) === parseInt(zipToFind);
 		});
 
 		let curDateMS = firstDayMS;
 		let cases = [];
 		while (curDateMS <= Date.now()) {
-			const hasCasesForDate = casesForZip.find(({date}) => areSameDay(date, curDateMS));
+			const hasCasesForDate = casesForZip.find(({ date }) =>
+				areSameDay(date, curDateMS)
+			);
 
 			if (hasCasesForDate) {
 				cases.push(hasCasesForDate.total);
@@ -255,9 +289,12 @@ async function init() {
 		quantiles: getQuantiles(output),
 
 		dateBounds: {
-			first: format(new Date(firstDayMS), 'yyyy-MM-dd'),
-			last: format(new Date(casesSorted[casesSorted.length - 1].date), 'yyyy-MM-dd'),
-		}
+			first: format(new Date(firstDayMS), "yyyy-MM-dd"),
+			last: format(
+				new Date(casesSorted[casesSorted.length - 1].date),
+				"yyyy-MM-dd"
+			),
+		},
 	};
 
 	await writeFile(
@@ -268,12 +305,11 @@ async function init() {
 	process.exit(EXIT_CODES.NOMIMAL);
 }
 
-
 // await not available at top level, so we need to wrap this in an IIFE.
-(async function() {
+(async function () {
 	try {
 		await init();
-	} catch(e) {
+	} catch (e) {
 		console.error(e);
 		process.exit(EXIT_CODES.ERROR);
 	}
