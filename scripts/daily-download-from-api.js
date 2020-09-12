@@ -53,6 +53,8 @@ async function fetchAll(...urls) {
 }
 
 async function getData() {
+	// Construct URLs for each page of data, then fetch them in parallel.
+
 	const baseParams = {
 		where: "1=1",
 		outFields: "*",
@@ -60,17 +62,19 @@ async function getData() {
 		f: "json",
 	};
 
-	// TODO better handling of page iteration.
-	const page1 = getURL(baseAPIURL, {
-		...baseParams,
-		where: "FID >= 1 AND FID <= 50000",
-	});
-	const page2 = getURL(baseAPIURL, {
-		...baseParams,
-		where: "FID >= 50001 AND FID <= 100000",
-	});
+	const totalPages = 2;
+	const pageSize = 50000;
 
-	const pages = await fetchAll(page1, page2);
+	const pagesUrls = Array
+		.from(new Array(totalPages))
+		.map((nothing, index) => {
+			return getURL(baseAPIURL, {
+				...baseParams,
+				where: `FID >= ${(pageSize * index) + 1} AND FID <= ${(pageSize * index) + pageSize}`,
+			})
+		});
+
+	const pages = await fetchAll(...pagesUrls);
 
 	const page1Data = await pages[0].json();
 	const page2Data = await pages[1].json();
